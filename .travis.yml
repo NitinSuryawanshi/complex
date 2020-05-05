@@ -1,0 +1,24 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t nitin201806/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run nitin201806/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t nitin201806/multi-client ./client
+  - docker build -t nitin201806/multi-nginx ./nginx
+  - docker build -t nitin201806/multi-server ./server
+  - docker build -t nitin201806/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push nitin201806/multi-client
+  - docker push nitin201806/multi-nginx
+  - docker push nitin201806/multi-server
+  - docker push nitin201806/multi-worker
